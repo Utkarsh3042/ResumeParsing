@@ -1,0 +1,8 @@
+numpy
+pandas
+matplotlib
+seaborn
+scikit-learn
+streamlit-tags
+pdfminer.six
+PyPDF2
