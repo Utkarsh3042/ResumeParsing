@@ -6,3 +6,4 @@ scikit-learn
 streamlit-tags
 pdfminer.six
 PyPDF2
+sqlite3
