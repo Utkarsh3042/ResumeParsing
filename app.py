@@ -3,7 +3,7 @@ import streamlit as st
 from streamlit_tags import st_tags
 from PyPDF2 import PdfReader
 import pickle
-#from education import extract_education_from_resume
+from education import extract_education_from_resume
 import sqlite3
 import pandas as pd
 
@@ -20,7 +20,8 @@ cursor.execute('''CREATE TABLE IF NOT EXISTS resume
                     name TEXT,
                     email TEXT,
                     category TEXT,
-                    skills TEXT
+                    skills TEXT,
+                    education TEXT
                 )
             ''')
 
@@ -126,21 +127,23 @@ def run():
                 email = extract_email_from_resume(resume_text)
                 name = extract_name_from_resume(resume_text)
                 extracted_skills = extract_skills_from_resume(resume_text)
-                #extracted_education = extract_education_from_resume(resume_text)
+                extracted_education = extract_education_from_resume(resume_text)
                 ats_score = ats(uploaded_file)
                 
                 
                 # Display results
                 st.divider()
-                st.subheader("Extracted Information")
+                st.warning("**Disclaimer**: The extracted information may contain inaccuracies. Please verify the details for accuracy")
+                st.subheader("**Extracted Information**")
                 st.write(f"**Name:** {name}")
                 st.write(f"**Email:** {email}")
                 st.write(f"**Phone Number:** {phone}")
                 st.write(f"**Predicted Category:** {predict_cat}")
                 #st.write(f"**Extracted Education:** {extracted_education}")
                 st.write(f"**Recommended Job:** {recommended_job}")
-                st.write(f"**ATS Score:** {ats_score} ")
+                st.write(f"**ATS Score:** :blue[{ats_score}] ")
                 skills=st_tags(label="**Extracted Skills:**",text="", value=extracted_skills,suggestions=[])
+                education = st_tags(label="**Education:**",text="",value=extracted_education,suggestions=[])
                 
                 def to_check_existing_user(phone):
                     query = "SELECT 1 FROM resume WHERE phone = ?"
@@ -154,9 +157,10 @@ def run():
                 
                 if to_check_existing_user(phone):
                     str_skills = str(extracted_skills)
+                    str_edu = str(extracted_education)
                     try:
-                        cursor.execute("INSERT INTO resume(name, email, phone, category, skills) VALUES(?,?,?,?,?)",
-                                (name,email,phone,predict_cat,str_skills))
+                        cursor.execute("INSERT INTO resume(name, email, phone, category, skills, education) VALUES(?,?,?,?,?,?)",
+                                (name,email,phone,predict_cat,str_skills,str_edu))
                         conn.commit()
                     except sqlite3.Error as e:
                         print(e)
@@ -170,8 +174,8 @@ def run():
         if admin_user == 'admin' and admin_password == 'admin123':
             cursor.execute('''SELECT * FROM resume''')
             data = cursor.fetchall()
-            st.header("**User's Data**")
-            df = pd.DataFrame(data, columns=['Phone', 'Name', 'Email', 'Category','Skills'])
+            st.header("**Uploaded Resume Data**")
+            df = pd.DataFrame(data, columns=['Phone', 'Name', 'Email', 'Category','Skills','Education'])
             st.dataframe(df)
         
 run()
