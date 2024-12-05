@@ -1,3 +1,4 @@
+streamlit
 numpy
 pandas
 matplotlib
@@ -7,3 +8,5 @@ streamlit-tags
 pdfminer.six
 PyPDF2
 sqlite3
+python-dotenv
+groq

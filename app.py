@@ -1,12 +1,15 @@
+import os, base64, time, re
 import streamlit as st
-from PyPDF2 import PdfReader
-import re
-import pickle
-import os, base64, time
-#from education import extract_education_from_resume
-from skills import extract_skills_from_resume
 from streamlit_tags import st_tags
+from PyPDF2 import PdfReader
+import pickle
+#from education import extract_education_from_resume
 import sqlite3
+import pandas as pd
+
+from skills import extract_skills_from_resume
+from resume_ats import ats
+
 
 
 #database connection
@@ -63,12 +66,12 @@ def pdf_to_text(file):
 
 # Resume parsing functions
 def extract_contact_number_from_resume(text):
-    pattern = r"\b(?:\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b"
+    pattern = r"\b(?:\+?\d{1,3}[-.\s]?)?(\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4})\b"
     match = re.search(pattern, text)
     if match:
-        return match.group()
+        return match.group(1)
     else:
-        None
+        return None
 
 def extract_email_from_resume(text):
     pattern = r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b"
@@ -106,9 +109,7 @@ def run():
         st.divider()
         uploaded_file = st.file_uploader("Upload your resume (PDF or TXT)", type=["pdf", "txt"])
         if uploaded_file is not None:
-            with st.spinner('Uploading your Resume...'):
-                time.sleep(2)
-                save_image_path = './Uploaded_Resumes/'+uploaded_file.name
+            save_image_path = './Uploaded_Resumes/'+uploaded_file.name
             with open(save_image_path, "wb") as f:
                 f.write(uploaded_file.getbuffer())
             show_pdf(save_image_path)
@@ -126,6 +127,7 @@ def run():
                 name = extract_name_from_resume(resume_text)
                 extracted_skills = extract_skills_from_resume(resume_text)
                 #extracted_education = extract_education_from_resume(resume_text)
+                ats_score = ats(uploaded_file)
                 
                 
                 # Display results
@@ -136,8 +138,9 @@ def run():
                 st.write(f"**Phone Number:** {phone}")
                 st.write(f"**Predicted Category:** {predict_cat}")
                 #st.write(f"**Extracted Education:** {extracted_education}")
-                keywords=st_tags(label="**Extracted Skills:**",text="", value=extracted_skills,suggestions=[])
                 st.write(f"**Recommended Job:** {recommended_job}")
+                st.write(f"**ATS Score:** {ats_score} ")
+                skills=st_tags(label="**Extracted Skills:**",text="", value=extracted_skills,suggestions=[])
                 
                 def to_check_existing_user(phone):
                     query = "SELECT 1 FROM resume WHERE phone = ?"
@@ -162,5 +165,13 @@ def run():
         st.markdown('''<h1 style='text-align: center; color: #FFFFFF;'>ResumeIQ</h1>''',unsafe_allow_html=True)
         st.markdown('''<h5 style='text-align: center; color: #00b4d8;'>Admin Panel</h5>''',unsafe_allow_html=True)
         st.divider()
+        admin_user = st.text_input("Username")
+        admin_password = st.text_input("Password", type='password')
+        if admin_user == 'admin' and admin_password == 'admin123':
+            cursor.execute('''SELECT * FROM resume''')
+            data = cursor.fetchall()
+            st.header("**User's Data**")
+            df = pd.DataFrame(data, columns=['Phone', 'Name', 'Email', 'Category','Skills'])
+            st.dataframe(df)
         
 run()
