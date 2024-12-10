@@ -8,6 +8,5 @@ Steps Before Running the app:
 4. Create a new API key and paste in .env file
 ```groq_api_key = "your api key"``` 
 
-
 To run: 
  ```streamlit run app.py```
