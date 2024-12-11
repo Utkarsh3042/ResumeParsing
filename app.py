@@ -2,6 +2,7 @@ import os, base64, time, re
 import streamlit as st
 from streamlit_tags import st_tags
 from PyPDF2 import PdfReader
+from PyPDF2.errors import PdfReadError
 import pickle
 from education import extract_education_from_resume
 import sqlite3
@@ -109,62 +110,66 @@ def run():
         st.divider()
         uploaded_file = st.file_uploader("Upload your resume (PDF or TXT)", type=["pdf", "txt"])
         if uploaded_file is not None:
-            save_image_path = './Uploaded_Resumes/'+uploaded_file.name
-            with open(save_image_path, "wb") as f:
-                f.write(uploaded_file.getbuffer())
-            show_pdf(save_image_path)
-            if uploaded_file:
-                if uploaded_file.type == "application/pdf":
-                    resume_text = pdf_to_text(uploaded_file)
-                elif uploaded_file.type == "text/plain":
-                    resume_text = uploaded_file.read().decode("utf-8")
+            try:
+                save_image_path = './Uploaded_Resumes/'+uploaded_file.name
+                with st.spinner(text="Uploading"):
+                    with open(save_image_path, "wb") as f:
+                        f.write(uploaded_file.getbuffer())
+                    if uploaded_file:
+                        if uploaded_file.type == "application/pdf":
+                            resume_text = pdf_to_text(uploaded_file)
+                        elif uploaded_file.type == "text/plain":
+                            resume_text = uploaded_file.read().decode("utf-8")
 
-                # Process the uploaded file
-                predict_cat = predict_category(resume_text)
-                recommended_job = job_recommendation(resume_text)
-                phone = extract_contact_number_from_resume(resume_text)
-                email = extract_email_from_resume(resume_text)
-                name = extract_name_from_resume(resume_text)
-                extracted_skills = extract_skills_from_resume(resume_text)
-                extracted_education = extract_education_from_resume(resume_text)
-                ats_score = ats(uploaded_file)
+                        # Process the uploaded file
+                        predict_cat = predict_category(resume_text)
+                        recommended_job = job_recommendation(resume_text)
+                        phone = extract_contact_number_from_resume(resume_text)
+                        email = extract_email_from_resume(resume_text)
+                        name = extract_name_from_resume(resume_text)
+                        extracted_skills = extract_skills_from_resume(resume_text)
+                        extracted_education = extract_education_from_resume(resume_text)
+                        ats_score = int(ats(uploaded_file))
 
-                #adding data to database
-                def to_check_existing_user(phone):
-                    query = "SELECT 1 FROM resume WHERE phone = ?"
-                    cursor.execute(query,(phone,))
-                    res = cursor.fetchone()
-                    if res is not None:
-                        return False
-                    else:
-                        return True
+                        #adding data to database
+                        def to_check_existing_user(phone):
+                            query = "SELECT 1 FROM resume WHERE phone = ?"
+                            cursor.execute(query,(phone,))
+                            res = cursor.fetchone()
+                            if res is not None:
+                                return False
+                            else:
+                                return True
                     
                 
-                if to_check_existing_user(phone):
-                    str_skills = str(extracted_skills)
-                    str_edu = str(extracted_education)
-                    try:
-                        cursor.execute("INSERT INTO resume(name, email, phone, category, skills, education) VALUES(?,?,?,?,?,?)",
-                                (name,email,phone,predict_cat,str_skills,str_edu))
-                        conn.commit()
-                    except sqlite3.Error as e:
-                        print(e)
+                        if to_check_existing_user(phone):
+                            str_skills = str(extracted_skills)
+                            str_edu = str(extracted_education)
+                            try:
+                                cursor.execute("INSERT INTO resume(name, email, phone, category, skills, education) VALUES(?,?,?,?,?,?)",
+                                        (name,email,phone,predict_cat,str_skills,str_edu))
+                                conn.commit()
+                            except sqlite3.Error as e:
+                                print(e)
                 
                 
                 
                 # Display results
-                st.divider()
-                st.warning("**Disclaimer**: The extracted information may contain inaccuracies. Please verify the details for accuracy")
-                st.subheader("**Extracted Information**")
-                st.write(f"**Name:** {name}")
-                st.write(f"**Email:** {email}")
-                st.write(f"**Phone Number:** {phone}")
-                st.write(f"**Predicted Category:** {predict_cat}")
-                st.write(f"**Recommended Job:** {recommended_job}")
-                st.write(f"**ATS Score:** :blue[{ats_score}] ")
-                skills=st_tags(label="**Extracted Skills:**",text="", value=extracted_skills,suggestions=[])
-                education = st_tags(label="**Education:**",text="",value=extracted_education,suggestions=[])
-                
+                    show_pdf(save_image_path)
+                    st.divider()
+                    st.warning("**Disclaimer**: The extracted information may contain inaccuracies. Please verify the details for accuracy")
+                    st.subheader("**Extracted Information**")
+                    st.write(f"**Name:** {name}")
+                    st.write(f"**Email:** {email}")
+                    st.write(f"**Phone Number:** {phone}")
+                    st.write(f"**Predicted Category:** {predict_cat}")
+                    st.write(f"**Recommended Job:** {recommended_job}")
+                    st.write(f"**ATS Score:** :blue[{ats_score}] ")
+                    st.progress(ats_score/100)
+                    skills=st_tags(label="**Extracted Skills:**",text="", value=extracted_skills,suggestions=[])
+                    education = st_tags(label="**Education:**",text="",value=extracted_education,suggestions=[])
+            except PdfReadError as e:
+                st.error("Error while uploading the resume")
                 
 
     elif choice == 'Admin':

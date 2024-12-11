@@ -24,7 +24,7 @@ def resume_llm(extracted_text):
                 "content": '''You are an ATS evaluation assistant. 
                     Your sole task is to analyze the extracted text of resumes and calculate their ATS compatibility score based on factors such as 
                     keyword matching, formatting, structure, and readability. Do not provide any other information or perform unrelated tasks.
-                    Always output the ATS score only.'''
+                    Always output the overall ATS score only. Do not give answers in decimals.'''
             },
             {
 
