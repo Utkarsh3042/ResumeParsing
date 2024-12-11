@@ -92,11 +92,9 @@ def extract_skills_from_resume(text):
 
     for skill in skills_list:
         pattern = r"\b{}\b".format(re.escape(skill))  # Correctly escape the skill
-        # pattern =r"\b{}\b".format(re.escape(skill))
-        # print(f"Pattern for '{skill}': {pattern}")  # Debug: print the generated pattern
         match = re.search(pattern, text, re.IGNORECASE)
         if match:
             skills.append(skill)
     return skills
 
-print(extract_skills_from_resume("My skills are C++,Java,Python"))
+
