@@ -27,7 +27,6 @@ def resume_llm(extracted_text):
                     Always output the ATS score only.'''
             },
             {
-
                 "role": "user",
                 "content": extracted_text,
             }

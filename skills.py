@@ -4,7 +4,7 @@ def extract_skills_from_resume(text):
     skills_list = [
         'Python', 'Data Analysis', 'Machine Learning', 'Communication', 'Project Management', 'Deep Learning', 'SQL',
         'Tableau',
-        'Java', 'C++', 'JavaScript', 'HTML', 'CSS', 'React', 'Angular', 'Node.js', 'MongoDB', 'Express.js', 'Git',
+        'Java', 'C++','C','JavaScript', 'HTML', 'CSS', 'React', 'Angular', 'Node.js', 'MongoDB', 'Express.js', 'Git',
         'Research', 'Statistics', 'Quantitative Analysis', 'Qualitative Analysis', 'SPSS', 'R', 'Data Visualization',
         'Matplotlib',
         'Seaborn', 'Plotly', 'Pandas', 'Numpy', 'Scikit-learn', 'TensorFlow', 'Keras', 'PyTorch', 'NLTK', 'Text Mining',
@@ -88,14 +88,15 @@ def extract_skills_from_resume(text):
         'Identity and Access Management (IAM)', 'Single Sign-On (SSO)',
         'Multi-Factor Authentication (MFA)', 'Blockchain', 'Cryptocurrency', 'Decentralized Finance (DeFi)',
         'Smart Contracts', 'Web3', 'Non-Fungible Tokens (NFTs)']
-
-
     skills = []
 
     for skill in skills_list:
-        pattern = r"\b{}\b".format(re.escape(skill))
+        pattern = r"\b{}\b".format(re.escape(skill))  # Correctly escape the skill
+        # pattern =r"\b{}\b".format(re.escape(skill))
+        # print(f"Pattern for '{skill}': {pattern}")  # Debug: print the generated pattern
         match = re.search(pattern, text, re.IGNORECASE)
         if match:
             skills.append(skill)
-
     return skills
+
+print(extract_skills_from_resume("My skills are C++,Java,Python"))
