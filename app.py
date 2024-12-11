@@ -100,7 +100,6 @@ def show_pdf(file_path):
 
 
 def run():
-# Main Streamlit app
     st.sidebar.markdown("# Choose User")
     activities = ["User", "Admin"]
     choice = st.sidebar.selectbox("Choose among the given options:", activities)
@@ -120,7 +119,7 @@ def run():
                 elif uploaded_file.type == "text/plain":
                     resume_text = uploaded_file.read().decode("utf-8")
 
-            # Process the uploaded file
+                # Process the uploaded file
                 predict_cat = predict_category(resume_text)
                 recommended_job = job_recommendation(resume_text)
                 phone = extract_contact_number_from_resume(resume_text)
@@ -129,22 +128,8 @@ def run():
                 extracted_skills = extract_skills_from_resume(resume_text)
                 extracted_education = extract_education_from_resume(resume_text)
                 ats_score = ats(uploaded_file)
-                
-                
-                # Display results
-                st.divider()
-                st.warning("**Disclaimer**: The extracted information may contain inaccuracies. Please verify the details for accuracy")
-                st.subheader("**Extracted Information**")
-                st.write(f"**Name:** {name}")
-                st.write(f"**Email:** {email}")
-                st.write(f"**Phone Number:** {phone}")
-                st.write(f"**Predicted Category:** {predict_cat}")
-                #st.write(f"**Extracted Education:** {extracted_education}")
-                st.write(f"**Recommended Job:** {recommended_job}")
-                st.write(f"**ATS Score:** :blue[{ats_score}] ")
-                skills=st_tags(label="**Extracted Skills:**",text="", value=extracted_skills,suggestions=[])
-                education = st_tags(label="**Education:**",text="",value=extracted_education,suggestions=[])
-                
+
+                #adding data to database
                 def to_check_existing_user(phone):
                     query = "SELECT 1 FROM resume WHERE phone = ?"
                     cursor.execute(query,(phone,))
@@ -164,6 +149,23 @@ def run():
                         conn.commit()
                     except sqlite3.Error as e:
                         print(e)
+                
+                
+                
+                # Display results
+                st.divider()
+                st.warning("**Disclaimer**: The extracted information may contain inaccuracies. Please verify the details for accuracy")
+                st.subheader("**Extracted Information**")
+                st.write(f"**Name:** {name}")
+                st.write(f"**Email:** {email}")
+                st.write(f"**Phone Number:** {phone}")
+                st.write(f"**Predicted Category:** {predict_cat}")
+                st.write(f"**Recommended Job:** {recommended_job}")
+                st.write(f"**ATS Score:** :blue[{ats_score}] ")
+                skills=st_tags(label="**Extracted Skills:**",text="", value=extracted_skills,suggestions=[])
+                education = st_tags(label="**Education:**",text="",value=extracted_education,suggestions=[])
+                
+                
 
     elif choice == 'Admin':
         st.markdown('''<h1 style='text-align: center; color: #FFFFFF;'>ResumeIQ</h1>''',unsafe_allow_html=True)
