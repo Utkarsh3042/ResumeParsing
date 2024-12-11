@@ -95,6 +95,8 @@ def extract_skills_from_resume(text):
         match = re.search(pattern, text, re.IGNORECASE)
         if match:
             skills.append(skill)
+
+            
     return skills
 
 
